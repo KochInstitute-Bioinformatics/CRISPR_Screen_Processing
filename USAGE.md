@@ -9,7 +9,7 @@ This guide provides detailed instructions for running the CRISPR Screen Processi
 Ensure you have:
 
 - Nextflow >= 23.04.0 installed
-- Container engine (Docker, Singularity, or Podman)
+- Container engine (Docker, Singularity, Apptainer, or Podman)
 - Access to your FASTQ files
 - sgRNA library files prepared
 
@@ -61,6 +61,27 @@ You need three library-related files:
    - Can be the same file as MAGeCK library
    - Used for annotating UMI groups
 
+#### C. Params File (Recommended)
+
+These three reference paths have no built-in defaults and are required for every run.
+Rather than repeating them on the command line, store them once per cluster in a params file:
+
+```bash
+cp params.example.yml params.yml
+# edit params.yml with absolute paths that are visible from compute nodes
+```
+
+```yaml
+bowtie2_index: "/path/to/sgRNA_library/library_index_prefix"
+mageck_library: "/path/to/sgRNA_library/sgRNA_to_Gene.csv"
+sgrna_annotations: "/path/to/sgRNA_library/sgRNA_to_Gene.csv"
+```
+
+Pass it with `-params-file params.yml`. `params.yml` is listed in `.gitignore`, so each
+cluster/library keeps its own copy. Command-line `--param value` options override values in
+the file. If any of the three is missing, the pipeline stops at startup with an error
+pointing to `params.example.yml`.
+
 ### 3. Test the Pipeline Configuration
 
 Before running with your data, validate the configuration:
@@ -79,22 +100,21 @@ nextflow run main.nf -profile test,docker
 
 ```bash
 nextflow run KochInstitute-Bioinformatics/CRISPR_Screen_Processing \
+  -params-file params.yml \
   --input samplesheet.csv \
-  --bowtie2_index /path/to/library/index \
-  --mageck_library /path/to/sgRNA_library.csv \
-  --sgrna_annotations /path/to/sgRNA_annotations.csv \
   --outdir results \
   -profile docker
 ```
+
+The three reference paths can instead be given directly as `--bowtie2_index`,
+`--mageck_library` and `--sgrna_annotations`.
 
 #### With Custom Parameters
 
 ```bash
 nextflow run KochInstitute-Bioinformatics/CRISPR_Screen_Processing \
+  -params-file params.yml \
   --input samplesheet.csv \
-  --bowtie2_index /path/to/library/index \
-  --mageck_library /path/to/sgRNA_library.csv \
-  --sgrna_annotations /path/to/sgRNA_annotations.csv \
   --outdir results \
   --bc_pattern '(?P<umi_1>.{8})TTTTTT.*' \
   --trim_3prime 25 \
@@ -366,6 +386,26 @@ Run with:
 nextflow run main.nf -c slurm.config -profile singularity [other params]
 ```
 
+#### Apptainer
+
+On clusters that provide Apptainer instead of Singularity, use the built-in `apptainer`
+profile (it enables `autoMounts` and treats Apptainer like Singularity when choosing
+container images):
+
+```bash
+module load apptainer   # if your cluster uses modules
+nextflow run main.nf -c slurm.config -profile apptainer \
+  -params-file params.yml --input samplesheet.csv --outdir results
+```
+
+The `singularity` and `apptainer` profiles automatically bind the directory containing
+`bowtie2_index`, because reference files are passed as path strings and are not covered by
+`autoMounts`. If your `mageck_library` or `sgrna_annotations` live in a different directory,
+bind it too (see below).
+
+Run `-profile apptainer,slurm` (or your own scheduler profile) to combine a container
+engine with an executor profile.
+
 ### Processing Large Datasets
 
 For large CRISPR screens (100+ samples):
@@ -593,7 +633,10 @@ process {
 }
 ```
 
-### Issue: Container binding errors (Singularity)
+### Issue: Container binding errors (Singularity/Apptainer)
+
+The `singularity` and `apptainer` profiles bind only the directory of `bowtie2_index`. If the
+MAGeCK library or annotation files are elsewhere, add them to the bind list.
 
 **Solution:**
 Add necessary paths to bind in `nextflow.config`:
@@ -605,6 +648,13 @@ singularity {
   runOptions = '--bind /path/to/data:/path/to/data'
 }
 ```
+
+For Apptainer use an `apptainer { ... }` block with the same options.
+
+### Issue: "Missing required parameter --bowtie2_index"
+
+The reference paths have no defaults. Supply them with `-params-file params.yml` (see
+[Params File](#c-params-file-recommended)) or on the command line.
 
 ## Adding Custom Modules
 
