@@ -2,7 +2,7 @@ process MAGECKCOUNT {
     tag "mageck_count"
     label 'process_medium'
     
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    container "${ workflow.containerEngine in ['singularity','apptainer'] && !task.ext.singularity_pull_docker_container ?
         'docker://bumproo/mageck' :
         'bumproo/mageck' }"
     

@@ -48,3 +48,6 @@ ENV/
 # Test data (comment out if you want to include test data)
 # data/
 # test_data/
+
+# Site-specific params (copy params.example.yml)
+params.yml

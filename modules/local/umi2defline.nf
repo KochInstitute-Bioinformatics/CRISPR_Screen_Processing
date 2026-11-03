@@ -3,7 +3,7 @@ process UMI2DEFLINE {
     label 'process_medium'
 
     // Support both Docker and Singularity with the specified image
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    container "${ workflow.containerEngine in ['singularity','apptainer'] && !task.ext.singularity_pull_docker_container ?
         'docker://bumproo/umitools' :
         'bumproo/umitools' }"
 

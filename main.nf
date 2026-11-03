@@ -100,7 +100,10 @@ workflow CRISPER_SCREEN_PROCESSING {
     // 
     // Create channel from samplesheet 
     // 
-    if (!params.input) { error "Please provide a samplesheet with --input" } 
+    if (!params.input) { error "Please provide a samplesheet with --input" }
+    ['bowtie2_index', 'mageck_library', 'sgrna_annotations'].each { p ->
+        if (!params[p]) { error "Missing required parameter --${p}. Set it in a params file (-params-file params.yml); see params.example.yml" }
+    }
     
     channel 
         .fromPath(params.input, checkIfExists: true) 

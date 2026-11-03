@@ -1,0 +1,6 @@
+# Site/library-specific reference paths. Copy to params.yml, edit, and run with:
+#   nextflow run main.nf -params-file params.yml --input samples.csv --outdir results ...
+# Use absolute paths that are visible from compute nodes.
+bowtie2_index: "/path/to/sgRNA_library/library_index_prefix"        # bowtie2 index prefix (no .bt2 suffix)
+mageck_library: "/path/to/sgRNA_library/sgRNA_to_Gene.csv"          # MAGeCK library file
+sgrna_annotations: "/path/to/sgRNA_library/sgRNA_to_Gene.csv"       # sgRNA -> gene annotations

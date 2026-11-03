@@ -3,7 +3,7 @@ process ALIGN2LIBRARY {
     label 'process_medium'
 
     // Support both Docker and Singularity with the specified image
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    container "${ workflow.containerEngine in ['singularity','apptainer'] && !task.ext.singularity_pull_docker_container ?
         'docker://bumproo/mageck' :
         'bumproo/mageck' }"
 
@@ -21,7 +21,7 @@ process ALIGN2LIBRARY {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
-    def bowtie2_index = task.ext.bowtie2_index ?: '/net/bmc-lab3/data/bcc/projects/tfal23-Knouse/251009Kno-crispr/sgRNA_library/knouse.shortened.71548'
+    def bowtie2_index = task.ext.bowtie2_index ?: params.bowtie2_index
     def trim_3prime = task.ext.trim_3prime ?: '31'
     
     """

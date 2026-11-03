@@ -390,3 +390,14 @@ This pipeline is released under the MIT License. See [LICENSE](LICENSE) file for
 ## Support
 
 For issues, questions, or contributions, please visit: <https://github.com/KochInstitute-Bioinformatics/CRISPR_Screen_Processing>
+
+## Cluster-specific reference paths
+
+Reference files (bowtie2 index, MAGeCK library, sgRNA annotations) have no built-in defaults.
+Copy `params.example.yml` to `params.yml`, fill in absolute paths for your cluster, and run with:
+
+```bash
+nextflow run main.nf -profile apptainer -params-file params.yml --input samples.csv --outdir results
+```
+
+`apptainer`/`singularity` profiles automatically bind the directory containing `bowtie2_index`.
